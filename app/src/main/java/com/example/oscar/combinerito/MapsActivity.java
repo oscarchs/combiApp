@@ -8,6 +8,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -58,12 +59,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LatLng DestinyCoords;
     LatLng cmfb1 = new LatLng(-16.384235,-71.530413);
     LatLng umacollo = new LatLng(-16.402261, -71.551456);
-    Button destiny;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        destiny = (Button) findViewById(R.id.destinybutton);
+        //destiny = (Button) findViewById(R.id.destinybutton);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
@@ -86,7 +86,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 Origin = new LatLng(latitude, longitude);
                 //marker = mMap.addMarker(new MarkerOptions().position(latLng));
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
+                //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
@@ -119,14 +119,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        GetBusStopService service = RetrofitInstance.getRetrofitInstance().create(GetBusStopService.class);
 
-        mMap.addMarker(new MarkerOptions().position(cmfb1).title("Colegio Militar"));
-        mMap.addMarker(new MarkerOptions().position(umacollo).title("Umacollo/U.Católica"));
+        Call<List<BusStop>> call = service.getBusStops();
+
+        Log.wtf("URL Called", call.request().url() + "");
+
+        call.enqueue(new Callback<List<BusStop>>() {
+            @Override
+            public void onResponse(Call<List<BusStop>> call, Response<List<BusStop>> response) {
+                for (BusStop element : response.body()) {
+                    LatLng bus_coord = new LatLng(element.getLatitude(), element.getLongitude());
+                    MarkerOptions marker = new MarkerOptions().position(bus_coord).title(element.getName());
+                    marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                    mMap.addMarker(marker);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<BusStop>> call, Throwable t) {
+                Toast.makeText(MapsActivity.this, "Something went wrong...Error message: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
                 mMap.clear();
+
+                GetBusStopService service_a = RetrofitInstance.getRetrofitInstance().create(GetBusStopService.class);
+
+                Call<List<BusStop>> call_2 = service_a.getBusStops();
+
+                Log.wtf("URL Called", call_2.request().url() + "");
+
+                call_2.enqueue(new Callback<List<BusStop>>() {
+                    @Override
+                    public void onResponse(Call<List<BusStop>> call_2, Response<List<BusStop>> response) {
+                        for (BusStop element : response.body()) {
+                            LatLng bus_coord = new LatLng(element.getLatitude(), element.getLongitude());
+                            MarkerOptions marker = new MarkerOptions().position(bus_coord).title(element.getName());
+                            marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                            mMap.addMarker(marker);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<BusStop>> call_2, Throwable t) {
+                        Toast.makeText(MapsActivity.this, "Something went wrong...Error message: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+
                 DestinyCoords = point;
                 DestinyMarker = mMap.addMarker(new MarkerOptions().position(point));
                 Log.d("destiny_coords: ",DestinyCoords.toString());

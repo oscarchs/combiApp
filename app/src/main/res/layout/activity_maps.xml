@@ -6,14 +6,6 @@ android:paddingLeft="16dp"
 android:paddingRight="16dp"
 android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/destinybutton"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:text="@string/destiny" />
-
-
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
