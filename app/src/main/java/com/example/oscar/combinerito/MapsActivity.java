@@ -20,6 +20,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import android.util.Log;
@@ -43,16 +45,21 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-
     private GoogleMap mMap;
     LocationManager locationManager;
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     Marker marker;
     LocationListener locationListener;
+    Marker DestinyMarker;
+    LatLng DestinyCoords;
     LatLng cmfb1 = new LatLng(-16.384235,-71.530413);
     LatLng umacollo = new LatLng(-16.402261, -71.551456);
+    Button destiny;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        destiny = (Button) findViewById(R.id.destinybutton);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
@@ -138,6 +145,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addPolyline(lineOptions);
         mMap.addMarker(new MarkerOptions().position(cmfb1).title("Colegio Militar"));
         mMap.addMarker(new MarkerOptions().position(umacollo).title("Umacollo/U.Católica"));
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                mMap.clear();
+                DestinyCoords = point;
+                DestinyMarker = mMap.addMarker(new MarkerOptions().position(point));
+                Log.d("destiny_coords: ",DestinyCoords.toString());
+            }
+        });
     }
 
     @Override
