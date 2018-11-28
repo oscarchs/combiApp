@@ -36,12 +36,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import okhttp3.Route;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -71,19 +74,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_LOCATION_PERMISSION);
         }
-        GetBusStopService service = RetrofitInstance.getRetrofitInstance().create(GetBusStopService.class);
-        Call<List<BusStop>> call = service.getBusStops();
+        //GetBusStopService service = RetrofitInstance.getRetrofitInstance().create(GetBusStopService.class);
+        RoutePointService service = RetrofitInstance.getRetrofitInstance().create(RoutePointService.class);
+
+        // ?lat1=-16.384235&long1=-71.530413&lat2=-16.402261&long2=-71.551456
+        Map<String, String> data = new HashMap<>();
+        data.put("lat1", "-16.384235");
+        data.put("long1", "-71.530413");
+        data.put("lat2", "-16.402261");
+        data.put("long2", "-71.551456");
+
+        Call<Point> call = service.getRoutePoint(data);
 
         Log.wtf("URL Called", call.request().url() + "");
 
-        call.enqueue(new Callback<List<BusStop>>() {
+        call.enqueue(new Callback<Point>() {
             @Override
-            public void onResponse(Call<List<BusStop>> call, Response<List<BusStop>> response) {
-               Toast.makeText(MapsActivity.this, String.valueOf(response.body().size()), Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<Point> call, Response<Point> response) {
+               Toast.makeText(MapsActivity.this, response.body().getRoutes_point(), Toast.LENGTH_LONG).show();
             }
 
             @Override
-            public void onFailure(Call<List<BusStop>> call, Throwable t) {
+            public void onFailure(Call<Point> call, Throwable t) {
                 Toast.makeText(MapsActivity.this, "Something went wrong...Error message: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
