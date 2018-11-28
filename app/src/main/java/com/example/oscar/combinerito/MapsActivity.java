@@ -20,6 +20,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
+
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,6 +34,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -56,8 +64,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_LOCATION_PERMISSION);
         }
-        Log.d("asdasd:",ParseDirections(cmfb1,umacollo));
-        Log.d("asdasdasdasdasdasdasda","jjjj");
+        GetBusStopService service = RetrofitInstance.getRetrofitInstance().create(GetBusStopService.class);
+        Call<List<BusStop>> call = service.getBusStops();
+
+        Log.wtf("URL Called", call.request().url() + "");
+
+        call.enqueue(new Callback<List<BusStop>>() {
+            @Override
+            public void onResponse(Call<List<BusStop>> call, Response<List<BusStop>> response) {
+               Toast.makeText(MapsActivity.this, String.valueOf(response.body().size()), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<List<BusStop>> call, Throwable t) {
+                Toast.makeText(MapsActivity.this, "Something went wrong...Error message: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -115,7 +138,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addPolyline(lineOptions);
         mMap.addMarker(new MarkerOptions().position(cmfb1).title("Colegio Militar"));
         mMap.addMarker(new MarkerOptions().position(umacollo).title("Umacollo/U.Católica"));
-
     }
 
     @Override
