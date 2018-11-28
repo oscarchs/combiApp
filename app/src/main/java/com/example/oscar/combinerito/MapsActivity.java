@@ -52,6 +52,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationManager locationManager;
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     Marker marker;
+    LatLng Origin;
     LocationListener locationListener;
     Marker DestinyMarker;
     LatLng DestinyCoords;
@@ -75,30 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     REQUEST_LOCATION_PERMISSION);
         }
         //GetBusStopService service = RetrofitInstance.getRetrofitInstance().create(GetBusStopService.class);
-        RoutePointService service = RetrofitInstance.getRetrofitInstance().create(RoutePointService.class);
 
-        // ?lat1=-16.384235&long1=-71.530413&lat2=-16.402261&long2=-71.551456
-        Map<String, String> data = new HashMap<>();
-        data.put("lat1", "-16.384235");
-        data.put("long1", "-71.530413");
-        data.put("lat2", "-16.402261");
-        data.put("long2", "-71.551456");
-
-        Call<Point> call = service.getRoutePoint(data);
-
-        Log.wtf("URL Called", call.request().url() + "");
-
-        call.enqueue(new Callback<Point>() {
-            @Override
-            public void onResponse(Call<Point> call, Response<Point> response) {
-               Toast.makeText(MapsActivity.this, response.body().getRoutes_point(), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onFailure(Call<Point> call, Throwable t) {
-                Toast.makeText(MapsActivity.this, "Something went wrong...Error message: " + t.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
 
         locationListener = new LocationListener() {
             @Override
@@ -106,7 +84,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
 
-                LatLng latLng = new LatLng(latitude, longitude);
+                Origin = new LatLng(latitude, longitude);
                 //marker = mMap.addMarker(new MarkerOptions().position(latLng));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
                 mMap.getUiSettings().setZoomControlsEnabled(true);
@@ -141,22 +119,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        ArrayList points =null;
-        points = new ArrayList();
-        PolylineOptions lineOptions = null;
-        lineOptions = new PolylineOptions();
 
-        points = (ArrayList) decodePolyLines("z`bcBlbtsLe@lAa@dAcAdCuAdDQ^c@bAc@`A_@`Am@fBcAjCQ^GHEFCF");
-
-    //    points.add(cmfb1);
-     //   points.add(umacollo);
-        lineOptions.addAll(points);
-        lineOptions.width(12);
-        lineOptions.color(Color.RED);
-        lineOptions.geodesic(true);
-        mMap.addPolyline(lineOptions);
         mMap.addMarker(new MarkerOptions().position(cmfb1).title("Colegio Militar"));
         mMap.addMarker(new MarkerOptions().position(umacollo).title("Umacollo/U.Católica"));
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
@@ -164,6 +130,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 DestinyCoords = point;
                 DestinyMarker = mMap.addMarker(new MarkerOptions().position(point));
                 Log.d("destiny_coords: ",DestinyCoords.toString());
+
+                RoutePointService service = RetrofitInstance.getRetrofitInstance().create(RoutePointService.class);
+
+                // ?lat1=-16.384235&long1=-71.530413&lat2=-16.402261&long2=-71.551456
+                Map<String, String> data = new HashMap<>();
+                data.put("lat1", String.valueOf(Origin.latitude));
+                data.put("long1",String.valueOf(Origin.longitude));
+                data.put("lat2", String.valueOf(DestinyCoords.latitude));
+                data.put("long2", String.valueOf(DestinyCoords.longitude));
+
+                Call<Point> call = service.getRoutePoint(data);
+
+                Log.wtf("URL Called", call.request().url() + "");
+
+                call.enqueue(new Callback<Point>() {
+                    @Override
+                    public void onResponse(Call<Point> call, Response<Point> response) {
+                        Toast.makeText(MapsActivity.this, response.body().getRoutes_point(), Toast.LENGTH_LONG).show();
+                        ArrayList points =null;
+                        points = new ArrayList();
+                        PolylineOptions lineOptions = null;
+                        lineOptions = new PolylineOptions();
+                        points = (ArrayList) decodePolyLines(response.body().getRoutes_point());
+
+                        //    points.add(cmfb1);
+                        //   points.add(umacollo);
+                        lineOptions.addAll(points);
+                        lineOptions.width(12);
+                        lineOptions.color(Color.RED);
+                        lineOptions.geodesic(true);
+                        mMap.addPolyline(lineOptions);
+                    }
+
+                    @Override
+                    public void onFailure(Call<Point> call, Throwable t) {
+                        Toast.makeText(MapsActivity.this, "Something went wrong...Error message: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }
