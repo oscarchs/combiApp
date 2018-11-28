@@ -1,5 +1,6 @@
 package com.example.oscar.combinerito;
 
+import android.graphics.Color;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -25,6 +26,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -37,6 +41,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -54,7 +59,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 double longitude = location.getLongitude();
 
                 LatLng latLng = new LatLng(latitude, longitude);
-                marker = mMap.addMarker(new MarkerOptions().position(latLng));
+                //marker = mMap.addMarker(new MarkerOptions().position(latLng));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -87,7 +92,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        LatLng cmfb1 = new LatLng(-16.384235,-71.530413);
+        LatLng umacollo = new LatLng(-16.402261, -71.551456);
+        ArrayList points =null;
+        points = new ArrayList();
+        PolylineOptions lineOptions = null;
+        lineOptions = new PolylineOptions();
+        points.add(cmfb1);
+        points.add(umacollo);
+        lineOptions.addAll(points);
+        lineOptions.width(12);
+        lineOptions.color(Color.RED);
+        lineOptions.geodesic(true);
+        mMap.addPolyline(lineOptions);
+        mMap.addMarker(new MarkerOptions().position(cmfb1).title("Colegio Militar"));
+        mMap.addMarker(new MarkerOptions().position(umacollo).title("Umacollo/U.Católica"));
     }
 
     @Override
